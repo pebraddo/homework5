@@ -1,0 +1,29 @@
+---
+title: "Homework 5"
+author: "Powell Braddock"
+format: html
+editor: visual
+---
+
+```{r Base R reading in}
+student_por <- read.csv("student-por.csv",sep=';')
+student_mat <- read.csv("student-mat.csv",sep=';')
+combined_students <- rbind(student_por,student_mat)
+combined_students
+```
+
+```{r Tidyverse read in}
+library(tidyverse)
+library(readr)
+student_math_tidy <- read_csv2('student-mat.csv')
+student_port_tidy <- read_csv2('student-por.csv')
+joined_students_mat_por <- dplyr::inner_join(student_port_tidy,student_math_tidy)
+joined_students_mat_por
+```
+
+```{r}
+exclude_list <- c('G1', 'G2', 'G3', 'paid', 'absences')
+to_join_list <- names(student_math_tidy)[!names(student_math_tidy) %in% exclude_list]
+joined_students <- dplyr::inner_join(student_port_tidy,student_math_tidy, by=c(to_join_list))
+joined_students
+```
