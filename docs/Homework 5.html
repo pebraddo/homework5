@@ -264,7 +264,10 @@ freetime, goout, Dalc, Walc, health, absences, G1, G2, G3)`</code></pre>
 </div>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>student_math_tidy <span class="sc">|&gt;</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">address=</span><span class="fu">as.factor</span>(address), <span class="at">famsize=</span><span class="fu">as.factor</span>(famsize), <span class="at">guardian=</span><span class="fu">as.factor</span>(guardian), <span class="at">reason=</span><span class="fu">as.factor</span>(reason))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">address=</span><span class="fu">as.factor</span>(address), </span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">famsize=</span><span class="fu">as.factor</span>(famsize),</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">guardian=</span><span class="fu">as.factor</span>(guardian), </span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">reason=</span><span class="fu">as.factor</span>(reason))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 395 × 33
    school sex     age address famsize Pstatus  Medu  Fedu Mjob     Fjob   reason
@@ -287,7 +290,10 @@ freetime, goout, Dalc, Walc, health, absences, G1, G2, G3)`</code></pre>
 #   Walc &lt;dbl&gt;, health &lt;dbl&gt;, absences &lt;dbl&gt;, G1 &lt;dbl&gt;, G2 &lt;dbl&gt;, G3 &lt;dbl&gt;</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>student_port_tidy <span class="sc">|&gt;</span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">address=</span><span class="fu">as.factor</span>(address), <span class="at">famsize=</span><span class="fu">as.factor</span>(famsize), <span class="at">guardian=</span><span class="fu">as.factor</span>(guardian), <span class="at">reason=</span><span class="fu">as.factor</span>(reason))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">address=</span><span class="fu">as.factor</span>(address), </span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">famsize=</span><span class="fu">as.factor</span>(famsize), </span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">guardian=</span><span class="fu">as.factor</span>(guardian), </span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">reason=</span><span class="fu">as.factor</span>(reason))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 649 × 33
    school sex     age address famsize Pstatus  Medu  Fedu Mjob     Fjob   reason
@@ -310,7 +316,10 @@ freetime, goout, Dalc, Walc, health, absences, G1, G2, G3)`</code></pre>
 #   Walc &lt;dbl&gt;, health &lt;dbl&gt;, absences &lt;dbl&gt;, G1 &lt;dbl&gt;, G2 &lt;dbl&gt;, G3 &lt;dbl&gt;</code></pre>
 </div>
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>joined_students <span class="sc">|&gt;</span></span>
-<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">address=</span><span class="fu">as.factor</span>(address), <span class="at">famsize=</span><span class="fu">as.factor</span>(famsize), <span class="at">guardian=</span><span class="fu">as.factor</span>(guardian), <span class="at">reason=</span><span class="fu">as.factor</span>(reason))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">address=</span><span class="fu">as.factor</span>(address), </span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>         <span class="at">famsize=</span><span class="fu">as.factor</span>(famsize), </span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">guardian=</span><span class="fu">as.factor</span>(guardian), </span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">reason=</span><span class="fu">as.factor</span>(reason))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 320 × 38
    school sex     age address famsize Pstatus  Medu  Fedu Mjob     Fjob   reason
