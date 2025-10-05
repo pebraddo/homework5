@@ -5,11 +5,13 @@ format: html
 editor: visual
 ---
 
+# Task 1: Read in the Data and Modify
+
 ```{r Base R reading in}
 student_por <- read.csv("student-por.csv",sep=';')
 student_mat <- read.csv("student-mat.csv",sep=';')
 combined_students <- rbind(student_por,student_mat)
-combined_students
+head(combined_students)
 ```
 
 ```{r Tidyverse read in}
@@ -26,4 +28,145 @@ exclude_list <- c('G1', 'G2', 'G3', 'paid', 'absences')
 to_join_list <- names(student_math_tidy)[!names(student_math_tidy) %in% exclude_list]
 joined_students <- dplyr::inner_join(student_port_tidy,student_math_tidy, by=c(to_join_list))
 joined_students
+```
+
+```{r}
+student_math_tidy |>
+  mutate(address=as.factor(address), 
+         famsize=as.factor(famsize),
+         guardian=as.factor(guardian), 
+         reason=as.factor(reason))
+student_port_tidy |>
+  mutate(address=as.factor(address), 
+         famsize=as.factor(famsize), 
+         guardian=as.factor(guardian), 
+         reason=as.factor(reason))
+joined_students |>
+  mutate(address=as.factor(address), 
+         famsize=as.factor(famsize), 
+         guardian=as.factor(guardian), 
+         reason=as.factor(reason))
+```
+
+# Task 2: Summarize the Data (Very Basic EDA)
+
+## Categorical Variables
+
+```{r one way contingency table}
+table(joined_students$address)
+```
+
+```{r two way contingency table}
+table(joined_students[,c('address', 'famsize')])
+```
+
+```{r three way contingency table}
+table(joined_students[,c('address', 'famsize', 'guardian')])
+```
+
+```{r conditional two way table by subsetting the two way table}
+two_way_add_fam <-table(joined_students[,c('address', 'famsize')])
+two_way_add_fam[,1]
+```
+
+```{r conditional two way table by three way table and subsetting}
+three_way <- table(joined_students[,c('address', 'famsize', 'guardian')])
+three_way[, , 'mother']
+```
+
+```{r two way contingency table using group_by() and summarize()}
+joined_students |>
+  group_by(address, famsize) |>
+  summarise(count=n()) |>
+  pivot_wider(names_from = famsize, values_from = count)
+```
+
+```{r stacked bar graph and side by side bar graph}
+g <- ggplot(data = joined_students |> drop_na(address, famsize), aes(x = address, fill = famsize)) + 
+  geom_bar() +
+  labs(x = "Address",
+       title = "Stacked Address vs. Family Size Bar Graph")
+h <- ggplot(data = joined_students |> drop_na(address, famsize), aes(x = address, fill = famsize)) + 
+  geom_bar(position = 'dodge') +
+  labs(x = "Address",
+       title = "Side-By-Side Address vs. Family Size Bar Graph") +
+  scale_fill_discrete('Family Size')
+
+g
+h
+```
+
+## Numeric Variables (and Across Groups)
+
+```{r measures of center and spread for 3 variables}
+joined_students |>
+  summarize(across(all_of(c('age', 'absences.x', 'G3.x')),
+                   list('mean'=mean, 'median' = median, 'stddev'=sd, 'IQR'=IQR), 
+                   .names = '{.fn}_{.col}'))
+```
+
+```{r measures of center and spread across single grouping variable}
+joined_students |>
+  group_by(address) |>
+  summarize(across(all_of(c('age', 'absences.x', 'G3.x')),
+                   list('mean'=mean, 'median' = median, 'stddev'=sd, 'IQR'=IQR), 
+                   .names = '{.fn}_{.col}'))
+```
+
+```{r measures of center and spread across two grouping variables}
+joined_students |>
+  group_by(address, famsize) |>
+  summarize(across(all_of(c('age', 'absences.x', 'G3.x')),
+                   list('mean'=mean, 'median' = median, 'stddev'=sd, 'IQR'=IQR), 
+                   .names = '{.fn}_{.col}'))
+```
+
+```{r correlation matrix between all numeric variables}
+numeric_cols <- c('age', 'absences.x', 'absences.y', 'G1.x','G1.y','G2.x','G2.y','G3.x','G3.y')
+joined_students |>
+  group_by(address, famsize) |>
+  drop_na(address, famsize) |>
+  group_map(~ cor(select(.x, all_of(numeric_cols)), use='pairwise.complete.obs'))
+```
+
+```{r histogram}
+histo_data <- joined_students |>
+  drop_na(age, absences.x, address) |>
+  select(address, age, absences.x) |>
+  pivot_longer(cols=c(age, absences.x),
+               names_to = 'variable',
+               values_to = 'value')
+ggplot(histo_data, aes(x=value, fill = interaction(variable, address))) + 
+  geom_histogram(alpha=0.5, bins=15)
+```
+
+```{r kernel density plot}
+
+ggplot(histo_data, aes(x=value, fill = interaction(variable, address))) + 
+  geom_density(kernel='gaussian')
+
+```
+
+```{r boxplot}
+ggplot(histo_data, aes(x= variable, y=value, fill=address)) + 
+  geom_boxplot(alpha=0.5)
+```
+
+```{r scatterplots}
+ggplot(joined_students, aes(x= absences.x, y=G3.x, color=address)) + 
+  geom_point(position='jitter')
+ggplot(joined_students, aes(x= age, y=G3.x, color=address)) + 
+  geom_point(position='jitter')
+```
+
+```{r}
+ggplot(joined_students, aes(x= age, y=G3.x, color=address)) + 
+  geom_point(position='jitter')+
+  facet_wrap(~ Fjob)
+```
+
+```{r}
+ggplot(joined_students, aes(x= age, y=G3.x, color=address)) + 
+  geom_point(position='jitter')+
+  facet_wrap(activities ~ Pstatus)
 ```
