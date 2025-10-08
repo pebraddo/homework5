@@ -142,8 +142,32 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
+<p>Powell Braddock</p>
+<p>ST 558</p>
+<p>October 8, 2025</p>
+<section id="introduction" class="level1">
+<h1>Introduction</h1>
+<p>The data we are investigating comes from the UCI machine learning repository and is in regards to secondary education in two Portuguese schools in two subjects: Mathematics and Portuguese. The goal of analyzing this data is to determine how out-of-school variables correlate to the student’s in-school performance.</p>
+<p>Variables that were considered are as follows:</p>
+<ul>
+<li><p>age: Integer, represents the student’s age (numeric: from 15 to 22)</p></li>
+<li><p>address: Categorical, represents the student’s home address type (binary: ‘U’ - Urban, ‘R’ - Rural)</p></li>
+<li><p>famsize: Categorical, represents the student’s family size (binary: ‘LE3’ - less than or equal to 3, ‘GT3’ - greater than 3)</p></li>
+<li><p>Pstatus: Categorical, represents the student’s parent’s cohabitation status (binary: ‘T’ - living together, ‘A’ - living apart)</p></li>
+<li><p>Fjob: Categorical, represents the student’s father’s job (nominal: ‘teacher’, ‘health’ care related’, civil ‘services’, ‘at_home’, ‘other’)</p></li>
+<li><p>reason: Categorical, represents the reason to choose this school (nominal: close to ‘home’, school ‘reputation’, ‘course’ preference, ‘other’)</p></li>
+<li><p>guardian: Categorical, represents the student’s guardian (nominal: ‘mother’, ‘father’, ‘other’)</p></li>
+<li><p>paid: Binary, represents the student’s enrollment in extra paid classes within the course subject (Math or Portuguese) (binary: yes, no)</p></li>
+<li><p>activities: Binary, represents the student’s participation in extra-curricular activities (binary: yes, no)</p></li>
+<li><p>absences: Integer, represents the student’s number of school absences (numeric: from 0 to 93)</p></li>
+<li><p>G1: Categorical, represents the student’s first period grade (numeric: from 0 to 20)</p></li>
+<li><p>G2: Categorical, represents the student’s second period grade (numeric: from 0 to 20)</p></li>
+<li><p>G3: Integer, represents the student’s final grade (numeric: from 0 to 20)</p></li>
+</ul>
+</section>
 <section id="task-1-read-in-the-data-and-modify" class="level1">
 <h1>Task 1: Read in the Data and Modify</h1>
+<p>To begin proper analysis, we will read in the downloaded data from two .csv files using <code>Base R</code>. The data in the .csv files is separated by semi-colons, which we need to specify. Then, we can combine the two .csv files using <code>rbind()</code> and confirm the data frame looks right.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>student_por <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"student-por.csv"</span>,<span class="at">sep=</span><span class="st">';'</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>student_mat <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"student-mat.csv"</span>,<span class="at">sep=</span><span class="st">';'</span>)</span>
@@ -180,6 +204,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 6        6 12 12 13</code></pre>
 </div>
 </div>
+<p>We will do the same thing again, but this time using <code>tidyverse</code>! <code>Readr</code> is a package that allows us to read .csv files into tibbles instead of data frames and also has a built in function for files with semi-colons as the delimiter: <code>read_csv2()</code>.</p>
+<p>Once these .csv files are brought in, we can use <code>dplyr</code>’s <code>inner_join()</code> function to join the two tibbles into one tibble with both math and Portuguese data. When we do this, we do get an error and our output tibble <code>joined_students_mat_por</code> has zero rows.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
@@ -234,6 +260,8 @@ freetime, goout, Dalc, Walc, health, absences, G1, G2, G3)`</code></pre>
 #   Walc &lt;dbl&gt;, health &lt;dbl&gt;, absences &lt;dbl&gt;, G1 &lt;dbl&gt;, G2 &lt;dbl&gt;, G3 &lt;dbl&gt;</code></pre>
 </div>
 </div>
+<p>Let’s try again, but exclude the G1, G2, G3, paid, and absences variables when joining. This works! We now have a tibble <code>joined_students</code> with 320 rows and 38 columns/variables.</p>
+<p>When looking deeper into why this join had a successful output and the other did not, I believe it is because we are using an inner join and there were no observations where the student’s grades and absences variables matched between the Portuguese subject and the Math subject in addition to their home life variables. This makes sense, as we are looking at the student’s school performance as an output of other variables interactions.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>exclude_list <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'G1'</span>, <span class="st">'G2'</span>, <span class="st">'G3'</span>, <span class="st">'paid'</span>, <span class="st">'absences'</span>)</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>to_join_list <span class="ot">&lt;-</span> <span class="fu">names</span>(student_math_tidy)[<span class="sc">!</span><span class="fu">names</span>(student_math_tidy) <span class="sc">%in%</span> exclude_list]</span>
@@ -262,6 +290,7 @@ freetime, goout, Dalc, Walc, health, absences, G1, G2, G3)`</code></pre>
 #   G3.x &lt;dbl&gt;, paid.y &lt;chr&gt;, absences.y &lt;dbl&gt;, G1.y &lt;dbl&gt;, G2.y &lt;dbl&gt;, …</code></pre>
 </div>
 </div>
+<p>Let’s check out four specific categorical variables: address, famsize, guardian, and reason. We can use the <code>mutate</code> function to change these to be factor variables in each tibble: math, Portuguese, and the combined.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>student_math_tidy <span class="sc">|&gt;</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">address=</span><span class="fu">as.factor</span>(address), </span>
@@ -346,8 +375,10 @@ freetime, goout, Dalc, Walc, health, absences, G1, G2, G3)`</code></pre>
 </section>
 <section id="task-2-summarize-the-data-very-basic-eda" class="level1">
 <h1>Task 2: Summarize the Data (Very Basic EDA)</h1>
+<p>Now, let’s move on the summarizing the data numerically and visually to understand the relationships between the variables in the data. We can begin with the Categorical variables.</p>
 <section id="categorical-variables" class="level2">
 <h2 class="anchored" data-anchor-id="categorical-variables">Categorical Variables</h2>
+<p>This one-way contingency table shows there are 67 students who live in a rural area.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(joined_students<span class="sc">$</span>address)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -356,6 +387,7 @@ freetime, goout, Dalc, Walc, health, absences, G1, G2, G3)`</code></pre>
  67 253 </code></pre>
 </div>
 </div>
+<p>This two-way contingency table shows there are 76 students who live in an urban area with a family size of less than or equal to three.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(joined_students[,<span class="fu">c</span>(<span class="st">'address'</span>, <span class="st">'famsize'</span>)])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -365,6 +397,7 @@ address GT3 LE3
       U 177  76</code></pre>
 </div>
 </div>
+<p>This three-way contingency table shows that out of the students who have a guardian as their mother, 11 of them live in rural areas with a family size of less than or equal to 3.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(joined_students[,<span class="fu">c</span>(<span class="st">'address'</span>, <span class="st">'famsize'</span>, <span class="st">'guardian'</span>)])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -390,12 +423,17 @@ address GT3 LE3
       U   5   3</code></pre>
 </div>
 </div>
+<p>We can use <code>table()</code> to create a two-way conditional table, first, by subsetting it, then, by creating a three-way table and subsetting it. Both result in the same table: where we can see 43 students with their mother as their guardian live in rural areas with family sizes greater than 3.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>two_way_add_fam <span class="ot">&lt;-</span><span class="fu">table</span>(joined_students[,<span class="fu">c</span>(<span class="st">'address'</span>, <span class="st">'famsize'</span>)])</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>two_way_add_fam[,<span class="dv">1</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>subset_three_way_first <span class="ot">&lt;-</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  joined_students <span class="sc">|&gt;</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">filter</span>(guardian <span class="sc">==</span> <span class="st">'mother'</span>)</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(subset_three_way_first[,<span class="fu">c</span>(<span class="st">'address'</span>, <span class="st">'famsize'</span>)])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>  R   U 
- 53 177 </code></pre>
+<pre><code>       famsize
+address GT3 LE3
+      R  43  11
+      U 128  55</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -408,11 +446,13 @@ address GT3 LE3
       U 128  55</code></pre>
 </div>
 </div>
+<p>Let’s try to create a two-way contingency table using <code>group_by()</code> and <code>summarize()</code> from <code>dplyr</code>, then <code>pivot_wider()</code> to make the result look like the output from using <code>table()</code>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>joined_students <span class="sc">|&gt;</span></span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(address, famsize) <span class="sc">|&gt;</span></span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">count=</span><span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
-<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> famsize, <span class="at">values_from =</span> count)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(guardian <span class="sc">==</span> <span class="st">'mother'</span>) <span class="sc">|&gt;</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">count=</span><span class="fu">n</span>()) <span class="sc">|&gt;</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_wider</span>(<span class="at">names_from =</span> famsize, <span class="at">values_from =</span> count)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>`summarise()` has grouped output by 'address'. You can override using the
 `.groups` argument.</code></pre>
@@ -422,10 +462,11 @@ address GT3 LE3
 # Groups:   address [2]
   address   GT3   LE3
   &lt;chr&gt;   &lt;int&gt; &lt;int&gt;
-1 R          53    14
-2 U         177    76</code></pre>
+1 R          43    11
+2 U         128    55</code></pre>
 </div>
 </div>
+<p>Now for the visual: We can use ggplot() to create both a stacked bar graph and a side-by-side bar graph!</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>g <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(<span class="at">data =</span> joined_students <span class="sc">|&gt;</span> <span class="fu">drop_na</span>(address, famsize), <span class="fu">aes</span>(<span class="at">x =</span> address, <span class="at">fill =</span> famsize)) <span class="sc">+</span> </span>
 <span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>() <span class="sc">+</span></span>
@@ -457,6 +498,7 @@ address GT3 LE3
 </section>
 <section id="numeric-variables-and-across-groups" class="level2">
 <h2 class="anchored" data-anchor-id="numeric-variables-and-across-groups">Numeric Variables (and Across Groups)</h2>
+<p>Moving on, let’s investigate the numeric variables: age, absences, and the three test grade variables. We can begin by checking out the measures of center and spread for age, absences in Portuguese, and the G3 grade in Portuguese.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>joined_students <span class="sc">|&gt;</span></span>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="fu">across</span>(<span class="fu">all_of</span>(<span class="fu">c</span>(<span class="st">'age'</span>, <span class="st">'absences.x'</span>, <span class="st">'G3.x'</span>)),</span>
@@ -471,6 +513,7 @@ address GT3 LE3
 #   mean_G3.x &lt;dbl&gt;, median_G3.x &lt;dbl&gt;, stddev_G3.x &lt;dbl&gt;, IQR_G3.x &lt;dbl&gt;</code></pre>
 </div>
 </div>
+<p>Now what does those measures look like across the address grouping variable? Looks like students with an urban address have a slightly lower average age, lower average absences, and higher average G3 value than their rural address counterparts.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>joined_students <span class="sc">|&gt;</span></span>
 <span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(address) <span class="sc">|&gt;</span></span>
@@ -488,6 +531,7 @@ address GT3 LE3
 #   stddev_G3.x &lt;dbl&gt;, IQR_G3.x &lt;dbl&gt;</code></pre>
 </div>
 </div>
+<p>How about across both address and family size? Students from rural areas and larger family size have lower average and median G3 Portuguese scores than students with smaller families and students with urban addresses.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>joined_students <span class="sc">|&gt;</span></span>
 <span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(address, famsize) <span class="sc">|&gt;</span></span>
@@ -512,6 +556,10 @@ address GT3 LE3
 #   stddev_G3.x &lt;dbl&gt;, IQR_G3.x &lt;dbl&gt;</code></pre>
 </div>
 </div>
+<p>Let’s see what the correlation matrix looks like between all of the numeric variables!</p>
+<p>I found it interesting and validating that the correlation between absences from both subjects was as high as it was because if a student misses a full day of classes, they will be absent from both subjects.</p>
+<p>Correlation between grades of the same subject is strong, which is reasonable.</p>
+<p>I am surprised to see a lack of correlation between absences and the resulting grades.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>numeric_cols <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">'age'</span>, <span class="st">'absences.x'</span>, <span class="st">'absences.y'</span>, <span class="st">'G1.x'</span>,<span class="st">'G1.y'</span>,<span class="st">'G2.x'</span>,<span class="st">'G2.y'</span>,<span class="st">'G3.x'</span>,<span class="st">'G3.y'</span>)</span>
 <span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>joined_students <span class="sc">|&gt;</span></span>
@@ -608,6 +656,7 @@ G3.x        0.92776304  0.46866095  1.0000000  0.45531436
 G3.y        0.51147036  0.92010117  0.4553144  1.00000000</code></pre>
 </div>
 </div>
+<p>Let’s check out a histogram for age and absences in Portuguese across address. I’m not feeling like we can draw many conclusions from this visual, as there are more urban address students represented and it is a count graph and age and absences are plotted on the same histogram, per the instructions, which is weird.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb45"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>histo_data <span class="ot">&lt;-</span> joined_students <span class="sc">|&gt;</span></span>
 <span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">drop_na</span>(age, absences.x, address) <span class="sc">|&gt;</span></span>
@@ -616,7 +665,8 @@ G3.y        0.51147036  0.92010117  0.4553144  1.00000000</code></pre>
 <span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">'variable'</span>,</span>
 <span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">'value'</span>)</span>
 <span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(histo_data, <span class="fu">aes</span>(<span class="at">x=</span>value, <span class="at">fill =</span> <span class="fu">interaction</span>(variable, address))) <span class="sc">+</span> </span>
-<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">alpha=</span><span class="fl">0.5</span>, <span class="at">bins=</span><span class="dv">15</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">alpha=</span><span class="fl">0.5</span>, <span class="at">bins=</span><span class="dv">15</span>) <span class="sc">+</span></span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">'Histogram of Age and Absences.x across Address'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -625,9 +675,11 @@ G3.y        0.51147036  0.92010117  0.4553144  1.00000000</code></pre>
 </div>
 </div>
 </div>
+<p>The Kernel Density Plot makes slightly more sense, as it shows density instead of count data, however the age and absences being on the same plot really confuses me.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(histo_data, <span class="fu">aes</span>(<span class="at">x=</span>value, <span class="at">fill =</span> <span class="fu">interaction</span>(variable, address))) <span class="sc">+</span> </span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="at">kernel=</span><span class="st">'gaussian'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="at">kernel=</span><span class="st">'gaussian'</span>) <span class="sc">+</span></span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">'Kernel Density Plot of Age and Absences.x across Address'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -636,9 +688,11 @@ G3.y        0.51147036  0.92010117  0.4553144  1.00000000</code></pre>
 </div>
 </div>
 </div>
+<p>Finally, the boxplot of the same information makes way more sense. We can see the wider spread of the number of absences among rural students versus urban students. Age is also more widely spread in the rural student population than the urban students.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb47"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(histo_data, <span class="fu">aes</span>(<span class="at">x=</span> variable, <span class="at">y=</span>value, <span class="at">fill=</span>address)) <span class="sc">+</span> </span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha=</span><span class="fl">0.5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha=</span><span class="fl">0.5</span>)<span class="sc">+</span> </span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">'Boxplot of Age and Absences.x across Address'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -647,9 +701,11 @@ G3.y        0.51147036  0.92010117  0.4553144  1.00000000</code></pre>
 </div>
 </div>
 </div>
+<p>We can see in both of the scatterplots belowthe relationship between the G3.x variable and both Absences.x and age across address. Most of the students have less than 10 absences for this course, while the age is more spread across different values in a cluster, with less outliers for either type of address.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(joined_students, <span class="fu">aes</span>(<span class="at">x=</span> absences.x, <span class="at">y=</span>G3.x, <span class="at">color=</span>address)) <span class="sc">+</span> </span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">position=</span><span class="st">'jitter'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">position=</span><span class="st">'jitter'</span>) <span class="sc">+</span></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">'G3.x vs. Absences.x across Address Scatterplot'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -658,7 +714,8 @@ G3.y        0.51147036  0.92010117  0.4553144  1.00000000</code></pre>
 </div>
 </div>
 <div class="sourceCode cell-code" id="cb49"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(joined_students, <span class="fu">aes</span>(<span class="at">x=</span> age, <span class="at">y=</span>G3.x, <span class="at">color=</span>address)) <span class="sc">+</span> </span>
-<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">position=</span><span class="st">'jitter'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">position=</span><span class="st">'jitter'</span>)<span class="sc">+</span></span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">'G3.x vs. Age across Address Scatterplot'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -667,10 +724,12 @@ G3.y        0.51147036  0.92010117  0.4553144  1.00000000</code></pre>
 </div>
 </div>
 </div>
+<p>Let’s see how these scatterplots look for different student’s father’s jobs. More scatter for grades occurred in services than any other jobs. Most jobs were in the ‘other’ category, with only rural address students having very low (outlier) G3.x scores. Father’s who had jobs ‘at_home’ or in ‘health’ had students with a G3.x score of more than 10.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(joined_students, <span class="fu">aes</span>(<span class="at">x=</span> age, <span class="at">y=</span>G3.x, <span class="at">color=</span>address)) <span class="sc">+</span> </span>
 <span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">position=</span><span class="st">'jitter'</span>)<span class="sc">+</span></span>
-<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> Fjob)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> Fjob)<span class="sc">+</span></span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">'G3.x vs. Age across Address and Fjob Scatterplots'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -679,10 +738,13 @@ G3.y        0.51147036  0.92010117  0.4553144  1.00000000</code></pre>
 </div>
 </div>
 </div>
+<p>Let’s see about these same core variables across parental living status and involvement in extra-curricular activities.</p>
+<p>More students had parents who lived together than apart. No students with parents living apart had less than a 9 score for the G3.x, while there was certainly more spread among the larger population of students with parents that lived together.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(joined_students, <span class="fu">aes</span>(<span class="at">x=</span> age, <span class="at">y=</span>G3.x, <span class="at">color=</span>address)) <span class="sc">+</span> </span>
 <span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">position=</span><span class="st">'jitter'</span>)<span class="sc">+</span></span>
-<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(activities <span class="sc">~</span> Pstatus)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(activities <span class="sc">~</span> Pstatus)<span class="sc">+</span></span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">'G3.x vs. Age across Address, Activities, and Pstatus Scatterplots'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure">
@@ -691,6 +753,7 @@ G3.y        0.51147036  0.92010117  0.4553144  1.00000000</code></pre>
 </div>
 </div>
 </div>
+<p>There is one outlier of a student living in a rural area with parents that live together and is involved with extra-curricular activities who scored very low on the G3.x variable. A follow-up might be to investigate this student and if any data is missing or if there are challenging experiences occurring that are not included in the data categories.</p>
 
 
 </section>

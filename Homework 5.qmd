@@ -5,7 +5,47 @@ format: html
 editor: visual
 ---
 
+Powell Braddock
+
+ST 558
+
+October 8, 2025
+
+# Introduction
+
+The data we are investigating comes from the UCI machine learning repository and is in regards to secondary education in two Portuguese schools in two subjects: Mathematics and Portuguese. The goal of analyzing this data is to determine how out-of-school variables correlate to the student's in-school performance.
+
+Variables that were considered are as follows:
+
+-   age: Integer, represents the student's age (numeric: from 15 to 22)
+
+-   address: Categorical, represents the student's home address type (binary: 'U' - Urban, 'R' - Rural)
+
+-   famsize: Categorical, represents the student's family size (binary: 'LE3' - less than or equal to 3, 'GT3' - greater than 3)
+
+-   Pstatus: Categorical, represents the student's parent's cohabitation status (binary: 'T' - living together, 'A' - living apart)
+
+-   Fjob: Categorical, represents the student's father's job (nominal: 'teacher', 'health' care related', civil 'services', 'at_home', 'other')
+
+-   reason: Categorical, represents the reason to choose this school (nominal: close to 'home', school 'reputation', 'course' preference, 'other')
+
+-   guardian: Categorical, represents the student's guardian (nominal: 'mother', 'father', 'other')
+
+-   paid: Binary, represents the student's enrollment in extra paid classes within the course subject (Math or Portuguese) (binary: yes, no)
+
+-   activities: Binary, represents the student's participation in extra-curricular activities (binary: yes, no)
+
+-   absences: Integer, represents the student's number of school absences (numeric: from 0 to 93)
+
+-   G1: Categorical, represents the student's first period grade (numeric: from 0 to 20)
+
+-   G2: Categorical, represents the student's second period grade (numeric: from 0 to 20)
+
+-   G3: Integer, represents the student's final grade (numeric: from 0 to 20)
+
 # Task 1: Read in the Data and Modify
+
+To begin proper analysis, we will read in the downloaded data from two .csv files using `Base R`. The data in the .csv files is separated by semi-colons, which we need to specify. Then, we can combine the two .csv files using `rbind()` and confirm the data frame looks right.
 
 ```{r Base R reading in}
 student_por <- read.csv("student-por.csv",sep=';')
@@ -13,6 +53,10 @@ student_mat <- read.csv("student-mat.csv",sep=';')
 combined_students <- rbind(student_por,student_mat)
 head(combined_students)
 ```
+
+We will do the same thing again, but this time using `tidyverse`! `Readr` is a package that allows us to read .csv files into tibbles instead of data frames and also has a built in function for files with semi-colons as the delimiter: `read_csv2()`.
+
+Once these .csv files are brought in, we can use `dplyr`'s `inner_join()` function to join the two tibbles into one tibble with both math and Portuguese data. When we do this, we do get an error and our output tibble `joined_students_mat_por` has zero rows.
 
 ```{r Tidyverse read in}
 library(tidyverse)
@@ -23,12 +67,18 @@ joined_students_mat_por <- dplyr::inner_join(student_port_tidy,student_math_tidy
 joined_students_mat_por
 ```
 
+Let's try again, but exclude the G1, G2, G3, paid, and absences variables when joining. This works! We now have a tibble `joined_students` with 320 rows and 38 columns/variables.
+
+When looking deeper into why this join had a successful output and the other did not, I believe it is because we are using an inner join and there were no observations where the student's grades and absences variables matched between the Portuguese subject and the Math subject in addition to their home life variables. This makes sense, as we are looking at the student's school performance as an output of other variables interactions.
+
 ```{r}
 exclude_list <- c('G1', 'G2', 'G3', 'paid', 'absences')
 to_join_list <- names(student_math_tidy)[!names(student_math_tidy) %in% exclude_list]
 joined_students <- dplyr::inner_join(student_port_tidy,student_math_tidy, by=c(to_join_list))
 joined_students
 ```
+
+Let's check out four specific categorical variables: address, famsize, guardian, and reason. We can use the `mutate` function to change these to be factor variables in each tibble: math, Portuguese, and the combined.
 
 ```{r}
 student_math_tidy |>
@@ -50,23 +100,36 @@ joined_students |>
 
 # Task 2: Summarize the Data (Very Basic EDA)
 
+Now, let's move on the summarizing the data numerically and visually to understand the relationships between the variables in the data. We can begin with the Categorical variables.
+
 ## Categorical Variables
+
+This one-way contingency table shows there are 67 students who live in a rural area.
 
 ```{r one way contingency table}
 table(joined_students$address)
 ```
 
+This two-way contingency table shows there are 76 students who live in an urban area with a family size of less than or equal to three.
+
 ```{r two way contingency table}
 table(joined_students[,c('address', 'famsize')])
 ```
+
+This three-way contingency table shows that out of the students who have a guardian as their mother, 11 of them live in rural areas with a family size of less than or equal to 3.
 
 ```{r three way contingency table}
 table(joined_students[,c('address', 'famsize', 'guardian')])
 ```
 
+We can use `table()` to create a two-way conditional table, first, by subsetting it, then, by creating a three-way table and subsetting it. Both result in the same table: where we can see 43 students with their mother as their guardian live in rural areas with family sizes greater than 3.
+
 ```{r conditional two way table by subsetting the two way table}
-two_way_add_fam <-table(joined_students[,c('address', 'famsize')])
-two_way_add_fam[,1]
+subset_three_way_first <-
+  joined_students |>
+    filter(guardian == 'mother')
+table(subset_three_way_first[,c('address', 'famsize')])
+
 ```
 
 ```{r conditional two way table by three way table and subsetting}
@@ -74,12 +137,17 @@ three_way <- table(joined_students[,c('address', 'famsize', 'guardian')])
 three_way[, , 'mother']
 ```
 
+Let's try to create a two-way contingency table using `group_by()` and `summarize()` from `dplyr`, then `pivot_wider()` to make the result look like the output from using `table()`.
+
 ```{r two way contingency table using group_by() and summarize()}
 joined_students |>
   group_by(address, famsize) |>
+  filter(guardian == 'mother') |>
   summarise(count=n()) |>
   pivot_wider(names_from = famsize, values_from = count)
 ```
+
+Now for the visual: We can use ggplot() to create both a stacked bar graph and a side-by-side bar graph!
 
 ```{r stacked bar graph and side by side bar graph}
 g <- ggplot(data = joined_students |> drop_na(address, famsize), aes(x = address, fill = famsize)) + 
@@ -94,9 +162,12 @@ h <- ggplot(data = joined_students |> drop_na(address, famsize), aes(x = address
 
 g
 h
+
 ```
 
 ## Numeric Variables (and Across Groups)
+
+Moving on, let's investigate the numeric variables: age, absences, and the three test grade variables. We can begin by checking out the measures of center and spread for age, absences in Portuguese, and the G3 grade in Portuguese.
 
 ```{r measures of center and spread for 3 variables}
 joined_students |>
@@ -104,6 +175,8 @@ joined_students |>
                    list('mean'=mean, 'median' = median, 'stddev'=sd, 'IQR'=IQR), 
                    .names = '{.fn}_{.col}'))
 ```
+
+Now what does those measures look like across the address grouping variable? Looks like students with an urban address have a slightly lower average age, lower average absences, and higher average G3 value than their rural address counterparts.
 
 ```{r measures of center and spread across single grouping variable}
 joined_students |>
@@ -113,6 +186,8 @@ joined_students |>
                    .names = '{.fn}_{.col}'))
 ```
 
+How about across both address and family size? Students from rural areas and larger family size have lower average and median G3 Portuguese scores than students with smaller families and students with urban addresses.
+
 ```{r measures of center and spread across two grouping variables}
 joined_students |>
   group_by(address, famsize) |>
@@ -120,6 +195,14 @@ joined_students |>
                    list('mean'=mean, 'median' = median, 'stddev'=sd, 'IQR'=IQR), 
                    .names = '{.fn}_{.col}'))
 ```
+
+Let's see what the correlation matrix looks like between all of the numeric variables!
+
+I found it interesting and validating that the correlation between absences from both subjects was as high as it was because if a student misses a full day of classes, they will be absent from both subjects.
+
+Correlation between grades of the same subject is strong, which is reasonable.
+
+I am surprised to see a lack of correlation between absences and the resulting grades.
 
 ```{r correlation matrix between all numeric variables}
 numeric_cols <- c('age', 'absences.x', 'absences.y', 'G1.x','G1.y','G2.x','G2.y','G3.x','G3.y')
@@ -129,6 +212,8 @@ joined_students |>
   group_map(~ cor(select(.x, all_of(numeric_cols)), use='pairwise.complete.obs'))
 ```
 
+Let's check out a histogram for age and absences in Portuguese across address. I'm not feeling like we can draw many conclusions from this visual, as there are more urban address students represented and it is a count graph and age and absences are plotted on the same histogram, per the instructions, which is weird.
+
 ```{r histogram}
 histo_data <- joined_students |>
   drop_na(age, absences.x, address) |>
@@ -137,36 +222,57 @@ histo_data <- joined_students |>
                names_to = 'variable',
                values_to = 'value')
 ggplot(histo_data, aes(x=value, fill = interaction(variable, address))) + 
-  geom_histogram(alpha=0.5, bins=15)
+  geom_histogram(alpha=0.5, bins=15) +
+  labs(title = 'Histogram of Age and Absences.x across Address')
 ```
+
+The Kernel Density Plot makes slightly more sense, as it shows density instead of count data, however the age and absences being on the same plot really confuses me.
 
 ```{r kernel density plot}
 
 ggplot(histo_data, aes(x=value, fill = interaction(variable, address))) + 
-  geom_density(kernel='gaussian')
+  geom_density(kernel='gaussian') +
+  labs(title = 'Kernel Density Plot of Age and Absences.x across Address')
 
 ```
+
+Finally, the boxplot of the same information makes way more sense. We can see the wider spread of the number of absences among rural students versus urban students. Age is also more widely spread in the rural student population than the urban students.
 
 ```{r boxplot}
 ggplot(histo_data, aes(x= variable, y=value, fill=address)) + 
-  geom_boxplot(alpha=0.5)
+  geom_boxplot(alpha=0.5)+ 
+  labs(title='Boxplot of Age and Absences.x across Address')
 ```
+
+We can see in both of the scatterplots belowthe relationship between the G3.x variable and both Absences.x and age across address. Most of the students have less than 10 absences for this course, while the age is more spread across different values in a cluster, with less outliers for either type of address.
 
 ```{r scatterplots}
 ggplot(joined_students, aes(x= absences.x, y=G3.x, color=address)) + 
-  geom_point(position='jitter')
+  geom_point(position='jitter') +
+  labs(title = 'G3.x vs. Absences.x across Address Scatterplot')
 ggplot(joined_students, aes(x= age, y=G3.x, color=address)) + 
-  geom_point(position='jitter')
+  geom_point(position='jitter')+
+  labs(title = 'G3.x vs. Age across Address Scatterplot')
 ```
+
+Let's see how these scatterplots look for different student's father's jobs. More scatter for grades occurred in services than any other jobs. Most jobs were in the 'other' category, with only rural address students having very low (outlier) G3.x scores. Father's who had jobs 'at_home' or in 'health' had students with a G3.x score of more than 10.
 
 ```{r}
 ggplot(joined_students, aes(x= age, y=G3.x, color=address)) + 
   geom_point(position='jitter')+
-  facet_wrap(~ Fjob)
+  facet_wrap(~ Fjob)+
+  labs(title='G3.x vs. Age across Address and Fjob Scatterplots')
 ```
+
+Let's see about these same core variables across parental living status and involvement in extra-curricular activities.
+
+More students had parents who lived together than apart. No students with parents living apart had less than a 9 score for the G3.x, while there was certainly more spread among the larger population of students with parents that lived together.
 
 ```{r}
 ggplot(joined_students, aes(x= age, y=G3.x, color=address)) + 
   geom_point(position='jitter')+
-  facet_wrap(activities ~ Pstatus)
+  facet_wrap(activities ~ Pstatus)+
+  labs(title='G3.x vs. Age across Address, Activities, and Pstatus Scatterplots')
 ```
+
+There is one outlier of a student living in a rural area with parents that live together and is involved with extra-curricular activities who scored very low on the G3.x variable. A follow-up might be to investigate this student and if any data is missing or if there are challenging experiences occurring that are not included in the data categories.
